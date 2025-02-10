@@ -1,0 +1,25 @@
+{
+    "manifest_version": 3,
+    "name": "Pathbuilder Roll Copier",
+    "version": "1.0",
+    "description": "Copies a formatted roll string to the clipboard when clicking a skill.",
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+      {
+        "matches": ["https://pathbuilder2e.com/*"],
+        "js": ["pathbuilder.js"]
+      },
+      {
+        "matches": ["https://app.roll20.net/*"],
+        "js": ["roll20.js"]
+      }
+    ],
+    "permissions": ["clipboardWrite", "activeTab", "tabs"],
+    "host_permissions": ["https://pathbuilder2e.com/*", "https://app.roll20.net/*"]
+}
