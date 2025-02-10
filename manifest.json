@@ -20,6 +20,6 @@
         "js": ["roll20.js"]
       }
     ],
-    "permissions": ["clipboardWrite", "activeTab", "tabs"],
+    "permissions": ["clipboardWrite", "activeTab", "tabs", "storage"],
     "host_permissions": ["https://pathbuilder2e.com/*", "https://app.roll20.net/*"]
 }

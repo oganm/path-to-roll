@@ -1,3 +1,24 @@
+// Initialize the checkbox state from storage
+chrome.storage.sync.get(['blockTinting'], function(result) {
+    const checkbox = document.getElementById('block-tinting');
+    // Default to true if not set
+    checkbox.checked = result.blockTinting !== false;
+});
+
+// Save checkbox state changes
+document.getElementById('block-tinting').addEventListener('change', function(e) {
+    chrome.storage.sync.set({ blockTinting: e.target.checked });
+    // Notify content script of the change
+    chrome.tabs.query({url: "https://pathbuilder2e.com/*"}, function(tabs) {
+        tabs.forEach(tab => {
+            chrome.tabs.sendMessage(tab.id, {
+                type: 'UPDATE_TINTING',
+                blockTinting: e.target.checked
+            });
+        });
+    });
+});
+
 // Check status of Pathbuilder and Roll20 tabs
 chrome.tabs.query({}, function(tabs) {
     // Get UI elements
