@@ -1,8 +1,24 @@
+// Add CSS to hide the dice tray and backdrop
+const style = document.createElement('style');
+style.textContent = `
+  body > div.dice-tray,
+  #dice-backdrop {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+`;
+document.head.appendChild(style);
+
 // Listen for clicks anywhere on the document.
 document.addEventListener('click', function(e) {
     // Check if the click occurred inside a skill container.
     const skillElement = e.target.closest('.section-skill');
     if (!skillElement) return; // Not clicking a skill element.
+
+    // Prevent the default click behavior and stop event propagation
+    e.preventDefault();
+    e.stopPropagation();
 
     // Grab the modifier element inside the clicked skill.
     const modifierElement = skillElement.querySelector('.section-skill-total');
