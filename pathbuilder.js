@@ -320,6 +320,168 @@ document.addEventListener('click', function(e) {
     });
 });
 
+// Listen for clicks on spell attack elements
+document.addEventListener('click', function(e) {
+    // Check if we clicked on a spell attack roll button
+    const spellElement = e.target.closest('.dice-button.named-roll');
+    if (!spellElement || !spellElement.textContent.includes('Spell Attack')) return;
+
+    // Get the current tinting preference before handling the click
+    chrome.storage.sync.get(['blockTinting'], function(result) {
+        const blockTinting = result.blockTinting !== false;
+
+        if (blockTinting) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Get the attack bonus from the data-roll-value attribute
+        const rollValue = spellElement.getAttribute('data-roll-value');
+        if (!rollValue) {
+            console.warn("Roll value not found.");
+            return;
+        }
+
+        // Get the spell name from the data-title attribute or the closest title element
+        const spellTitle = spellElement.closest('.listview-item').querySelector('.listview-title');
+        const spellName = spellTitle ? spellTitle.textContent.trim() : 'Spell';
+
+        // Get spell traits
+        const traitsDiv = spellElement.closest('.listview-detail').querySelector('div:has(> .trait)');
+        const traits = [];
+        if (traitsDiv) {
+            traitsDiv.querySelectorAll('.trait').forEach(trait => {
+                traits.push(trait.textContent.trim());
+            });
+        }
+        const traitsText = traits.length > 0 ? traits.join(', ') : '';
+
+        // Get the character name
+        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
+        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+
+        // Create the roll template string for spell attack
+        const rollString = `&{template:default} {{name=${charName} - ${spellName} Attack}} {{attack=[[${rollValue}]]}}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
+
+        // Copy the roll string to the clipboard
+        navigator.clipboard.writeText(rollString)
+            .then(() => {
+                console.log(`Copied spell attack roll string: ${rollString}`);
+                showPopup(`Copied: Spell Attack roll`, e.clientX, e.clientY);
+
+                // Send the roll string to Roll20 through the background script
+                console.log('Sending spell attack roll string to background...');
+                chrome.runtime.sendMessage({
+                    type: 'ROLL_STRING',
+                    rollString: rollString
+                })
+                .then(response => {
+                    console.log('Background response:', response);
+                    if (!response || !response.success) {
+                        console.warn('Failed to process spell attack roll:', response?.error || 'No response');
+                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Failed to send spell attack roll:', err);
+                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
+                });
+            })
+            .catch(err => {
+                console.error('Error copying spell attack text: ', err);
+                showPopup(`Error copying spell attack roll string`, e.clientX, e.clientY);
+            });
+    });
+});
+
+// Listen for clicks on spell damage elements
+document.addEventListener('click', function(e) {
+    // Check if we clicked on a spell damage roll button (dice-button that's not a spell attack)
+    const spellElement = e.target.closest('.dice-button.named-roll');
+    if (!spellElement || spellElement.textContent.includes('Spell Attack')) return;
+
+    // Get the current tinting preference before handling the click
+    chrome.storage.sync.get(['blockTinting'], function(result) {
+        const blockTinting = result.blockTinting !== false;
+
+        if (blockTinting) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Get the damage roll from the data-roll-value attribute
+        const rollValue = spellElement.getAttribute('data-roll-value');
+        if (!rollValue) {
+            console.warn("Roll value not found.");
+            return;
+        }
+
+        // Get the spell name from the closest title element
+        const spellTitle = spellElement.closest('.listview-item').querySelector('.listview-title');
+        const spellName = spellTitle ? spellTitle.textContent.trim() : 'Spell';
+
+        // Get spell traits
+        const traitsDiv = spellElement.closest('.listview-detail').querySelector('div:has(> .trait)');
+        const traits = [];
+        if (traitsDiv) {
+            traitsDiv.querySelectorAll('.trait').forEach(trait => {
+                traits.push(trait.textContent.trim());
+            });
+        }
+        const traitsText = traits.length > 0 ? traits.join(', ') : '';
+
+        // Get spell description to find damage type
+        const description = spellElement.getAttribute('data-description');
+        let damageType = null;
+        if (description) {
+            // Look for damage types in the description
+            const damageTypes = ['bludgeoning', 'piercing', 'slashing', 'fire', 'cold', 'acid', 'electricity', 'sonic', 'force', 'mental', 'poison', 'positive', 'negative'];
+            for (const type of damageTypes) {
+                if (description.toLowerCase().includes(type)) {
+                    damageType = type.charAt(0).toUpperCase() + type.slice(1);
+                    break;
+                }
+            }
+        }
+
+        // Get the character name
+        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
+        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+
+        // Create the roll template string for spell damage
+        const rollString = `&{template:default} {{name=${charName} - ${spellName} Damage}} {{damage=[[${rollValue}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
+
+        // Copy the roll string to the clipboard
+        navigator.clipboard.writeText(rollString)
+            .then(() => {
+                console.log(`Copied spell damage roll string: ${rollString}`);
+                showPopup(`Copied: Spell Damage roll`, e.clientX, e.clientY);
+
+                // Send the roll string to Roll20 through the background script
+                console.log('Sending spell damage roll string to background...');
+                chrome.runtime.sendMessage({
+                    type: 'ROLL_STRING',
+                    rollString: rollString
+                })
+                .then(response => {
+                    console.log('Background response:', response);
+                    if (!response || !response.success) {
+                        console.warn('Failed to process spell damage roll:', response?.error || 'No response');
+                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Failed to send spell damage roll:', err);
+                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
+                });
+            })
+            .catch(err => {
+                console.error('Error copying spell damage text: ', err);
+                showPopup(`Error copying spell damage roll string`, e.clientX, e.clientY);
+            });
+    });
+});
+
 // Function to show a temporary pop-up at the click coordinates.
 function showPopup(message, x, y) {
   const popup = document.createElement("div");
