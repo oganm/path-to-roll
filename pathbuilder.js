@@ -83,35 +83,8 @@ document.addEventListener('click', function(e) {
         // Create the roll template string
         const rollString = `&{template:default} {{name=${charName} - ${skillName}}} {{roll=[[1d20${modifier}]]}} {{modifier=${modifier}}}`;
 
-        // Copy the roll string to the clipboard.
-        navigator.clipboard.writeText(rollString)
-          .then(() => {
-            console.log(`Copied roll string: ${rollString}`);
-            // Show a pop-up message near the click.
-            showPopup(`Copied: ${skillName} check`, e.clientX, e.clientY);
-
-            // Send the roll string to Roll20 through the background script
-            console.log('Sending roll string to background...');
-            chrome.runtime.sendMessage({
-              type: 'ROLL_STRING',
-              rollString: rollString
-            })
-            .then(response => {
-              console.log('Background response:', response);
-              if (!response || !response.success) {
-                console.warn('Failed to process roll:', response?.error || 'No response');
-                showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
-              }
-            })
-            .catch(err => {
-              console.warn('Failed to send roll:', err);
-              showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
-            });
-          })
-          .catch(err => {
-            console.error('Error copying text: ', err);
-            showPopup(`Error copying roll string`, e.clientX, e.clientY);
-          });
+        // Handle roll string copying and sending
+        handleRollString(rollString, `${skillName} check`, e.clientX, e.clientY);
     });
 });
 
@@ -189,35 +162,8 @@ document.addEventListener('click', function(e) {
         // Create the roll template string for attack
         const rollString = `&{template:default} {{name=${charName} - ${weaponName} Attack}} {{attack=[[1d20${attackBonus}]]}}${profLevel ? ` {{proficiency=${profLevel}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
 
-        // Copy the roll string to the clipboard
-        navigator.clipboard.writeText(rollString)
-            .then(() => {
-                console.log(`Copied attack roll string: ${rollString}`);
-                // Show a pop-up message near the click
-                showPopup(`Copied: Attack roll`, e.clientX, e.clientY);
-
-                // Send the roll string to Roll20 through the background script
-                console.log('Sending attack roll string to background...');
-                chrome.runtime.sendMessage({
-                    type: 'ROLL_STRING',
-                    rollString: rollString
-                })
-                .then(response => {
-                    console.log('Background response:', response);
-                    if (!response || !response.success) {
-                        console.warn('Failed to process attack roll:', response?.error || 'No response');
-                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
-                    }
-                })
-                .catch(err => {
-                    console.warn('Failed to send attack roll:', err);
-                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
-                });
-            })
-            .catch(err => {
-                console.error('Error copying attack text: ', err);
-                showPopup(`Error copying attack roll string`, e.clientX, e.clientY);
-            });
+        // Handle roll string copying and sending
+        handleRollString(rollString, 'Attack roll', e.clientX, e.clientY);
     });
 });
 
@@ -288,35 +234,8 @@ document.addEventListener('click', function(e) {
         // Create the roll template string for damage, including critical multiplier and damage type if available
         const rollString = `&{template:default} {{name=${charName} - ${weaponName} Damage}} {{damage=[[${damageText}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${critText ? ` {{critical=${critText}}}` : ''}`;
 
-        // Copy the roll string to the clipboard
-        navigator.clipboard.writeText(rollString)
-            .then(() => {
-                console.log(`Copied damage roll string: ${rollString}`);
-                // Show a pop-up message near the click
-                showPopup(`Copied: Damage roll`, e.clientX, e.clientY);
-
-                // Send the roll string to Roll20 through the background script
-                console.log('Sending damage roll string to background...');
-                chrome.runtime.sendMessage({
-                    type: 'ROLL_STRING',
-                    rollString: rollString
-                })
-                .then(response => {
-                    console.log('Background response:', response);
-                    if (!response || !response.success) {
-                        console.warn('Failed to process damage roll:', response?.error || 'No response');
-                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
-                    }
-                })
-                .catch(err => {
-                    console.warn('Failed to send damage roll:', err);
-                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
-                });
-            })
-            .catch(err => {
-                console.error('Error copying damage text: ', err);
-                showPopup(`Error copying damage roll string`, e.clientX, e.clientY);
-            });
+        // Handle roll string copying and sending
+        handleRollString(rollString, 'Damage roll', e.clientX, e.clientY);
     });
 });
 
@@ -363,34 +282,8 @@ document.addEventListener('click', function(e) {
         // Create the roll template string for spell attack
         const rollString = `&{template:default} {{name=${charName} - ${spellName} Attack}} {{attack=[[${rollValue}]]}}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
 
-        // Copy the roll string to the clipboard
-        navigator.clipboard.writeText(rollString)
-            .then(() => {
-                console.log(`Copied spell attack roll string: ${rollString}`);
-                showPopup(`Copied: Spell Attack roll`, e.clientX, e.clientY);
-
-                // Send the roll string to Roll20 through the background script
-                console.log('Sending spell attack roll string to background...');
-                chrome.runtime.sendMessage({
-                    type: 'ROLL_STRING',
-                    rollString: rollString
-                })
-                .then(response => {
-                    console.log('Background response:', response);
-                    if (!response || !response.success) {
-                        console.warn('Failed to process spell attack roll:', response?.error || 'No response');
-                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
-                    }
-                })
-                .catch(err => {
-                    console.warn('Failed to send spell attack roll:', err);
-                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
-                });
-            })
-            .catch(err => {
-                console.error('Error copying spell attack text: ', err);
-                showPopup(`Error copying spell attack roll string`, e.clientX, e.clientY);
-            });
+        // Handle roll string copying and sending
+        handleRollString(rollString, 'Spell Attack roll', e.clientX, e.clientY);
     });
 });
 
@@ -451,34 +344,47 @@ document.addEventListener('click', function(e) {
         // Create the roll template string for spell damage
         const rollString = `&{template:default} {{name=${charName} - ${spellName} Damage}} {{damage=[[${rollValue}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
 
-        // Copy the roll string to the clipboard
-        navigator.clipboard.writeText(rollString)
-            .then(() => {
-                console.log(`Copied spell damage roll string: ${rollString}`);
-                showPopup(`Copied: Spell Damage roll`, e.clientX, e.clientY);
+        // Handle roll string copying and sending
+        handleRollString(rollString, 'Spell Damage roll', e.clientX, e.clientY);
+    });
+});
 
-                // Send the roll string to Roll20 through the background script
-                console.log('Sending spell damage roll string to background...');
-                chrome.runtime.sendMessage({
-                    type: 'ROLL_STRING',
-                    rollString: rollString
-                })
-                .then(response => {
-                    console.log('Background response:', response);
-                    if (!response || !response.success) {
-                        console.warn('Failed to process spell damage roll:', response?.error || 'No response');
-                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
-                    }
-                })
-                .catch(err => {
-                    console.warn('Failed to send spell damage roll:', err);
-                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
-                });
-            })
-            .catch(err => {
-                console.error('Error copying spell damage text: ', err);
-                showPopup(`Error copying spell damage roll string`, e.clientX, e.clientY);
-            });
+// Listen for clicks on ability score modifiers
+document.addEventListener('click', function(e) {
+    // Check if we clicked on an ability modifier
+    const abilityElement = e.target.closest('.ability-span');
+    if (!abilityElement) return;
+
+    // Get the current tinting preference before handling the click
+    chrome.storage.sync.get(['blockTinting'], function(result) {
+        const blockTinting = result.blockTinting !== false;
+
+        if (blockTinting) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Get the ability label and modifier
+        const abilityLabel = abilityElement.querySelector('.abilityLabel');
+        const abilityMod = abilityElement.querySelector('.abilityMod');
+
+        if (!abilityLabel || !abilityMod) {
+            console.warn("Ability label or modifier not found.");
+            return;
+        }
+
+        const ability = abilityLabel.textContent.trim();
+        let modifier = abilityMod.textContent.trim();
+
+        // Get the character name
+        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
+        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+
+        // Create the roll template string for ability check
+        const rollString = `&{template:default} {{name=${charName} - ${ability} Check}} {{roll=[[1d20${modifier}]]}} {{modifier=${modifier}}}`;
+
+        // Handle roll string copying and sending
+        handleRollString(rollString, `${ability} Check`, e.clientX, e.clientY);
     });
 });
 
@@ -514,4 +420,57 @@ function showPopup(message, x, y) {
 // Debug function to log HTML structure
 function logHTMLStructure(element) {
     console.log('HTML Structure:', element.outerHTML);
+}
+
+// Function to handle roll string copying and sending
+function handleRollString(rollString, description, x, y) {
+    // Get the clipboard preference
+    chrome.storage.sync.get(['copyToClipboard'], function(result) {
+        const shouldCopy = result.copyToClipboard === true;
+
+        const actions = [];
+
+        // Only copy to clipboard if enabled
+        if (shouldCopy) {
+            actions.push(
+                navigator.clipboard.writeText(rollString)
+                    .then(() => {
+                        console.log(`Copied roll string: ${rollString}`);
+                    })
+                    .catch(err => {
+                        console.error('Error copying text: ', err);
+                    })
+            );
+        }
+
+        // Always send to Roll20
+        actions.push(
+            chrome.runtime.sendMessage({
+                type: 'ROLL_STRING',
+                rollString: rollString
+            })
+            .then(response => {
+                console.log('Background response:', response);
+                if (!response || !response.success) {
+                    console.warn('Failed to process roll:', response?.error || 'No response');
+                    showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), x, y);
+                }
+            })
+            .catch(err => {
+                console.warn('Failed to send roll:', err);
+                showPopup('Failed to send to Roll20: ' + err.message, x, y);
+            })
+        );
+
+        // Execute all actions
+        Promise.all(actions)
+            .then(() => {
+                // Only show the "Copied" message if clipboard copying is enabled
+                if (shouldCopy) {
+                    showPopup(`Copied: ${description}`, x, y);
+                } else {
+                    showPopup(`Sent to Roll20: ${description}`, x, y);
+                }
+            });
+    });
 }

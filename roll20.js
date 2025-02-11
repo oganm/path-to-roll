@@ -5,6 +5,12 @@ console.log('Roll20 helper script loaded');
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('Received message in Roll20:', message);
 
+    if (message.type === 'PING') {
+        // Respond to ping messages to verify the content script is loaded
+        sendResponse({ status: 'ok' });
+        return true;
+    }
+
     if (message.type === 'ROLL_STRING') {
         console.log('Processing roll string:', message.rollString);
 
