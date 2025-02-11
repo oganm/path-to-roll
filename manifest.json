@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Pathbuilder Roll Copier",
+    "name": "Path to Roll",
     "version": "1.0",
-    "description": "Copies a formatted roll string to the clipboard when clicking a skill.",
+    "description": "Seamlessly connect your Pathbuilder 2e character sheet with Roll20 for instant dice rolling.",
     "action": {
         "default_popup": "popup.html"
     },

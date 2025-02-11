@@ -1,4 +1,4 @@
-# Pathbuilder Roll Copier
+# Path to Roll
 
 A Chrome extension that enhances the interaction between Pathbuilder 2e character sheets and Roll20. It automatically copies skill checks to your clipboard and can directly paste them into Roll20's chat.
 
@@ -48,7 +48,7 @@ A Chrome extension that enhances the interaction between Pathbuilder 2e characte
 1. **Download the Extension**:
    - Clone this repository or download it as a ZIP file
    ```bash
-   git clone https://github.com/yourusername/pathbuilder-roll-copier.git
+   git clone https://github.com/yourusername/path-to-roll.git
    ```
 
 2. **Load in Chrome**:

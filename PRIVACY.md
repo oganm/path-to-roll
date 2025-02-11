@@ -1,8 +1,8 @@
-# Privacy Policy for Pathbuilder Roll Copier
+# Privacy Policy for Path to Roll
 
 ## Information Collection and Use
 
-The Pathbuilder Roll Copier extension does not collect, store, or transmit any personal information. It operates entirely locally within your browser and only interacts with:
+The Path to Roll extension does not collect, store, or transmit any personal information. It operates entirely locally within your browser and only interacts with:
 
 1. Your Pathbuilder 2e character sheet page (pathbuilder2e.com)
 2. Your Roll20 game page (app.roll20.net)
