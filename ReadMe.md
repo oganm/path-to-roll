@@ -5,24 +5,43 @@ A Chrome extension that enhances the interaction between Pathbuilder 2e characte
 ## Features
 
 ### Roll Management
-- **One-Click Rolling**: Click any skill on your Pathbuilder sheet to generate a formatted roll string
+- **One-Click Rolling**: Click any skill, attack, or spell on your Pathbuilder sheet to generate a formatted roll string
 - **Roll20 Template Format**: Rolls are formatted using Roll20's template system, including:
   - Character name
-  - Skill name
+  - Skill/Attack/Spell name
   - Roll formula with modifier
-- **Automatic Roll20 Integration**: If a single Roll20 game tab is open, the roll will be automatically pasted into the chat
+  - Additional context (proficiency level, traits, damage types, etc.)
+- **Automatic Roll20 Integration**: When a single Roll20 game tab is open and ready, rolls will be automatically pasted into the chat
 
 ### Status Indicators
 - **Pathbuilder Status**: Shows whether a Pathbuilder character sheet is open
-- **Roll20 Status**: Shows whether Roll20 is open
-  - Green: One game tab open (ready for auto-paste)
+  - Green: Page is open and ready
+  - Red: No page open
+- **Roll20 Status**: Shows the connection state with Roll20
+  - Green: One game tab open and fully connected
   - Orange: Multiple game tabs open
-  - Red: No game tab open
+  - Red with "Not ready": Page is open but not ready (needs refresh)
+  - Red with "No page open": No Roll20 game detected
 
 ### Customization
 - **Dice Tray Control**: Toggle Pathbuilder's native dice tray and tinting effect
   - When enabled: Blocks Pathbuilder's dice tray for a cleaner experience
   - When disabled: Allows both Roll20 integration and Pathbuilder's native rolling
+- **Clipboard Mode**: Choose how roll strings are handled
+  - Auto-paste to Roll20 (default)
+  - Copy to clipboard only
+
+## Supported Roll Types
+- **Skills**: All skill checks with modifiers
+- **Attacks**: Weapon attacks including:
+  - Attack bonus
+  - Proficiency level
+  - Weapon traits
+- **Spells**: Spell attacks with traits
+- **Damage**: Weapon damage rolls including:
+  - Damage formula
+  - Damage type
+  - Critical multiplier
 
 ## Installation
 
@@ -41,31 +60,52 @@ A Chrome extension that enhances the interaction between Pathbuilder 2e characte
 3. **Verify Installation**:
    - The extension icon should appear in your Chrome toolbar
    - Click it to see the status indicators
-   - Green indicators show when Pathbuilder and Roll20 are properly connected
+   - Green indicators show when services are properly connected
 
 ## Usage
 
 1. **Basic Roll**:
    - Open your Pathbuilder character sheet
    - Open your Roll20 game
-   - Click any skill in Pathbuilder
-   - The roll will be copied to your clipboard and (if enabled) pasted into Roll20
+   - Wait for both status indicators to turn green
+   - Click any rollable element in Pathbuilder
+   - The roll will be automatically sent to Roll20 (or copied to clipboard if selected)
 
 2. **Status Panel**:
    - Click the extension icon to see connection status
-   - Green circles indicate connected services
+   - Green circles indicate fully connected services
    - Orange/red indicate potential issues
+   - Hover over indicators for detailed status information
 
 3. **Settings**:
-   - Use the checkbox in the extension popup to toggle Pathbuilder's native dice tray
+   - Block Pathbuilder Dice Tray: Toggle Pathbuilder's native rolling interface
+   - Copy to Clipboard: Enable to copy rolls to clipboard instead of auto-pasting
    - Settings persist between sessions
 
 ## Troubleshooting
 
-- **Rolls not pasting in Roll20**: Ensure only one Roll20 game tab is open
-- **Multiple Roll20 tabs**: The extension will only auto-paste when exactly one game tab is open
-- **Pathbuilder dice tray still showing**: Try toggling the checkbox in the extension popup
+- **"Not ready" Status**:
+  - Refresh your Roll20 page
+  - Wait for the page to fully load
+  - Check if the game is actually loaded (not just the landing page)
+
+- **Multiple Roll20 Tabs**:
+  - The extension will only auto-paste when exactly one game tab is open
+  - Close other Roll20 game tabs or use clipboard mode
+
+- **Receiving End Error**:
+  - If you see this error, check the Roll20 status indicator
+  - If red with "Not ready", refresh the Roll20 page
+  - Wait for the status to turn green before attempting rolls
+
+- **Pathbuilder Dice Tray Issues**:
+  - Try toggling the checkbox in the extension popup
+  - Refresh the Pathbuilder page if changes don't take effect
 
 ## Contributing
 
 Feel free to submit issues and enhancement requests!
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
