@@ -115,6 +115,211 @@ document.addEventListener('click', function(e) {
     });
 });
 
+// Listen for clicks on attack elements
+document.addEventListener('click', function(e) {
+    // Check if we clicked on or inside the attack tooltip (with d20 icon)
+    const hitElement = e.target.closest('.tooltip');
+    if (!hitElement || !hitElement.querySelector('img.icon-dice')) return;
+
+    // Get the current tinting preference before handling the click
+    chrome.storage.sync.get(['blockTinting'], function(result) {
+        const blockTinting = result.blockTinting !== false;
+
+        if (blockTinting) {
+            // Only prevent default and stop propagation if blocking is enabled
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Get the base attack bonus (text node after Hit:)
+        const hitDiv = hitElement.querySelector('.weapon-hit');
+        if (!hitDiv) {
+            console.warn("Hit div not found.");
+            return;
+        }
+
+        let attackBonus = '';
+        const hitSpan = hitDiv.querySelector('.weapon-span');
+        if (hitSpan) {
+            const nextNode = hitSpan.nextSibling;
+            if (nextNode && nextNode.nodeType === Node.TEXT_NODE) {
+                attackBonus = nextNode.textContent.trim();
+            }
+        }
+
+        if (!attackBonus) {
+            console.warn("Attack bonus not found.");
+            return;
+        }
+
+        // Ensure the bonus has a + or - sign
+        if (!attackBonus.startsWith('+') && !attackBonus.startsWith('-')) {
+            attackBonus = `+${attackBonus}`;
+        }
+
+        // Get the weapon name from the parent container
+        const weaponNameElement = hitElement.parentElement.querySelector('.weapon-name');
+        const weaponName = weaponNameElement ? weaponNameElement.textContent.trim() : 'Attack';
+
+        // Get proficiency level from the icon
+        const profIcon = hitElement.parentElement.querySelector('img[src*="icon_prof_"]');
+        let profLevel = '';
+        if (profIcon) {
+            if (profIcon.src.includes('trained')) profLevel = 'Trained';
+            else if (profIcon.src.includes('expert')) profLevel = 'Expert';
+            else if (profIcon.src.includes('master')) profLevel = 'Master';
+            else if (profIcon.src.includes('legendary')) profLevel = 'Legendary';
+        }
+
+        // Get weapon traits
+        const weaponContainer = hitElement.closest('.weapon-container');
+        const traitsDiv = weaponContainer ? weaponContainer.querySelector('.weapon-traits') : null;
+        const traits = [];
+        if (traitsDiv) {
+            traitsDiv.querySelectorAll('.trait').forEach(trait => {
+                traits.push(trait.textContent.trim());
+            });
+        }
+        const traitsText = traits.length > 0 ? traits.join(', ') : '';
+
+        // Get the character name
+        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
+        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+
+        // Create the roll template string for attack
+        const rollString = `&{template:default} {{name=${charName} - ${weaponName} Attack}} {{attack=[[1d20${attackBonus}]]}}${profLevel ? ` {{proficiency=${profLevel}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
+
+        // Copy the roll string to the clipboard
+        navigator.clipboard.writeText(rollString)
+            .then(() => {
+                console.log(`Copied attack roll string: ${rollString}`);
+                // Show a pop-up message near the click
+                showPopup(`Copied: Attack roll`, e.clientX, e.clientY);
+
+                // Send the roll string to Roll20 through the background script
+                console.log('Sending attack roll string to background...');
+                chrome.runtime.sendMessage({
+                    type: 'ROLL_STRING',
+                    rollString: rollString
+                })
+                .then(response => {
+                    console.log('Background response:', response);
+                    if (!response || !response.success) {
+                        console.warn('Failed to process attack roll:', response?.error || 'No response');
+                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Failed to send attack roll:', err);
+                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
+                });
+            })
+            .catch(err => {
+                console.error('Error copying attack text: ', err);
+                showPopup(`Error copying attack roll string`, e.clientX, e.clientY);
+            });
+    });
+});
+
+// Listen for clicks on damage elements
+document.addEventListener('click', function(e) {
+    // Check if we clicked on or inside the damage tooltip (with damage dice icon)
+    const damageElement = e.target.closest('.tooltip');
+    if (!damageElement || !damageElement.querySelector('img.icon-damage-dice')) return;
+
+    // Stop event propagation to prevent double-handling
+    e.stopPropagation();
+
+    // Get the current tinting preference before handling the click
+    chrome.storage.sync.get(['blockTinting'], function(result) {
+        const blockTinting = result.blockTinting !== false;
+
+        if (blockTinting) {
+            // Only prevent default and stop propagation if blocking is enabled
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Get the damage roll string from the weapon-span
+        const damageSpan = damageElement.querySelector('span');
+        if (!damageSpan) {
+            console.warn("Damage span not found in the clicked element.");
+            return;
+        }
+
+        // Find the text node containing the dice formula (it's right after the weapon-span)
+        let diceNode = null;
+        for (const node of damageSpan.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+                diceNode = node;
+                break;
+            }
+        }
+
+        if (!diceNode) {
+            console.warn("Dice formula text node not found.");
+            return;
+        }
+
+        // Extract just the dice formula, removing any whitespace
+        const damageText = diceNode.textContent.trim();
+        if (!damageText) {
+            console.warn("Dice formula is empty.");
+            return;
+        }
+
+        // Get critical multiplier if it exists
+        const critSpan = damageSpan.querySelector('.tooltiptextCrit');
+        const critMatch = critSpan ? critSpan.textContent.match(/Critical\s*(\d+x):/) : null;
+        const critText = critMatch ? critMatch[1] : null;
+
+        // Get damage type if it exists
+        const damageTypeSpan = damageSpan.querySelector('.superscript-damage');
+        const damageType = damageTypeSpan ? damageTypeSpan.textContent.trim() : null;
+
+        // Get the weapon name from the parent container
+        const weaponNameElement = damageElement.parentElement.querySelector('.weapon-name');
+        const weaponName = weaponNameElement ? weaponNameElement.textContent.trim() : 'Attack';
+
+        // Get the character name
+        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
+        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+
+        // Create the roll template string for damage, including critical multiplier and damage type if available
+        const rollString = `&{template:default} {{name=${charName} - ${weaponName} Damage}} {{damage=[[${damageText}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${critText ? ` {{critical=${critText}}}` : ''}`;
+
+        // Copy the roll string to the clipboard
+        navigator.clipboard.writeText(rollString)
+            .then(() => {
+                console.log(`Copied damage roll string: ${rollString}`);
+                // Show a pop-up message near the click
+                showPopup(`Copied: Damage roll`, e.clientX, e.clientY);
+
+                // Send the roll string to Roll20 through the background script
+                console.log('Sending damage roll string to background...');
+                chrome.runtime.sendMessage({
+                    type: 'ROLL_STRING',
+                    rollString: rollString
+                })
+                .then(response => {
+                    console.log('Background response:', response);
+                    if (!response || !response.success) {
+                        console.warn('Failed to process damage roll:', response?.error || 'No response');
+                        showPopup('Failed to send to Roll20: ' + (response?.error || 'No response'), e.clientX, e.clientY);
+                    }
+                })
+                .catch(err => {
+                    console.warn('Failed to send damage roll:', err);
+                    showPopup('Failed to send to Roll20: ' + err.message, e.clientX, e.clientY);
+                });
+            })
+            .catch(err => {
+                console.error('Error copying damage text: ', err);
+                showPopup(`Error copying damage roll string`, e.clientX, e.clientY);
+            });
+    });
+});
+
 // Function to show a temporary pop-up at the click coordinates.
 function showPopup(message, x, y) {
   const popup = document.createElement("div");
@@ -142,4 +347,9 @@ function showPopup(message, x, y) {
   setTimeout(() => {
     popup.remove();
   }, 2000);
+}
+
+// Debug function to log HTML structure
+function logHTMLStructure(element) {
+    console.log('HTML Structure:', element.outerHTML);
 }
