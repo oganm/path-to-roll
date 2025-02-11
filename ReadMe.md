@@ -106,6 +106,38 @@ A Chrome extension that enhances the interaction between Pathbuilder 2e characte
 
 Feel free to submit issues and enhancement requests!
 
+## Publishing to Chrome Web Store
+
+1. **Prepare the Extension**:
+   - Update the version number in `manifest.json`
+   - Ensure all images and icons meet Chrome Web Store requirements:
+     - One 128x128 pixel icon
+     - One promotional tile image (440x280)
+     - At least two screenshots (1280x800 or 640x400)
+   - Create a ZIP file of your extension directory (excluding `.git` and development files)
+
+2. **Developer Registration**:
+   - Visit the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+   - Sign up for a developer account
+   - Pay one-time registration fee ($5 USD)
+
+3. **Submit the Extension**:
+   - Click "New Item" in the developer dashboard
+   - Upload your ZIP file
+   - Fill out required information:
+     - Detailed description
+     - Privacy policy
+     - Screenshots/videos
+     - Category (Productivity)
+     - Language
+   - Submit for review
+
+4. **Post-Publication**:
+   - Review typically takes 2-3 business days
+   - Respond to any reviewer feedback promptly
+   - After approval, the extension will be publicly available
+   - Keep your contact information and privacy policy up to date
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
