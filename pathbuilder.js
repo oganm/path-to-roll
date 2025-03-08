@@ -167,6 +167,151 @@ document.addEventListener('click', function(e) {
     });
 });
 
+// Function to parse damage elements from the full damage text
+function parseDamageElements(fullText) {
+    // Remove the "Critical" section if present
+    const mainText = fullText.split('Critical')[0].trim();
+
+    // Extract damage elements using regex
+    const elements = [];
+
+    // First, try to extract from HTML structure
+    const damageRegex = /(\d+d\d+(?:[+-]\d+)?)\s*(?:<sup>(?:<span[^>]*>([^<]+)<\/span>)?<\/sup>)?/g;
+    let match;
+    let matchFound = false;
+
+    // Try to match the pattern: dice formula + optional superscript with damage type
+    const pattern = /(\d+d\d+(?:[+-]\d+)?)\s*(?:<sup><span[^>]*>([^<]+)<\/span><\/sup>|\+)/g;
+    let lastIndex = 0;
+    let formulaMatches = [];
+
+    // Extract all dice formulas with their types
+    while ((match = pattern.exec(mainText)) !== null) {
+        matchFound = true;
+        if (match[1]) {
+            formulaMatches.push({
+                formula: match[1],
+                type: match[2] || '',
+                index: match.index
+            });
+        }
+        lastIndex = pattern.lastIndex;
+    }
+
+    // If we found matches, process them
+    if (matchFound) {
+        // Process each formula match
+        for (let i = 0; i < formulaMatches.length; i++) {
+            elements.push({
+                formula: formulaMatches[i].formula,
+                type: formulaMatches[i].type
+            });
+        }
+    } else {
+        // Fallback: Try to extract using simpler regex patterns
+        // First, get all dice formulas
+        const dicePattern = /(\d+d\d+(?:[+-]\d+)?)/g;
+        const diceMatches = [];
+        while ((match = dicePattern.exec(mainText)) !== null) {
+            diceMatches.push({
+                formula: match[1],
+                index: match.index
+            });
+        }
+
+        // Then get all damage types from superscript spans
+        const typeSpans = mainText.match(/<span class="superscript-damage[^"]*">([^<]+)<\/span>/g) || [];
+        const types = typeSpans.map(span => {
+            const typeMatch = span.match(/<span[^>]*>([^<]+)<\/span>/);
+            return typeMatch ? typeMatch[1].trim() : '';
+        });
+
+        // Match formulas with types
+        diceMatches.forEach((dice, index) => {
+            elements.push({
+                formula: dice.formula,
+                type: index < types.length ? types[index] : ''
+            });
+        });
+    }
+
+    // If we still don't have elements, try one more approach
+    if (elements.length === 0) {
+        // Split by '+' and look for dice patterns
+        const parts = mainText.split('+').map(part => part.trim());
+        for (const part of parts) {
+            const diceMatch = part.match(/^(\d+d\d+(?:[+-]\d+)?)/);
+            if (diceMatch) {
+                // Extract type if present
+                const typeMatch = part.match(/<span class="superscript-damage[^"]*">([^<]+)<\/span>/);
+                elements.push({
+                    formula: diceMatch[1],
+                    type: typeMatch ? typeMatch[1] : ''
+                });
+            }
+        }
+    }
+
+    // If all else fails, try a direct approach with the example structure
+    if (elements.length === 0) {
+        // Try to directly extract from the example structure
+        const mainDamageMatch = mainText.match(/(\d+d\d+\+\d+)<sup><span[^>]*>([^<]+)<\/span><\/sup>/);
+        if (mainDamageMatch) {
+            elements.push({
+                formula: mainDamageMatch[1],
+                type: mainDamageMatch[2]
+            });
+
+            // Look for additional damage
+            const additionalMatch = mainText.match(/\+(\d+d\d+)<sup><span[^>]*>([^<]+)<\/span><\/sup>/);
+            if (additionalMatch) {
+                elements.push({
+                    formula: additionalMatch[1],
+                    type: additionalMatch[2]
+                });
+            }
+        }
+    }
+
+    // If we still have no elements, try a very simple approach
+    if (elements.length === 0) {
+        // Just look for dice patterns and extract them
+        const diceMatches = mainText.match(/\d+d\d+(?:[+-]\d+)?/g) || [];
+        diceMatches.forEach(formula => {
+            elements.push({
+                formula: formula,
+                type: ''
+            });
+        });
+    }
+
+    // Extract damage types from superscript spans if not already set
+    const superscriptSpans = fullText.match(/<span class="superscript-damage[^"]*">([^<]+)<\/span>/g);
+    if (superscriptSpans && elements.length > 0) {
+        superscriptSpans.forEach((span, index) => {
+            if (index < elements.length && !elements[index].type) {
+                const typeMatch = span.match(/<span[^>]*>([^<]+)<\/span>/);
+                if (typeMatch) {
+                    elements[index].type = typeMatch[1].trim();
+                }
+            }
+        });
+    }
+
+    // Final cleanup to ensure valid formulas
+    elements.forEach(element => {
+        // Make sure the formula doesn't contain any text
+        element.formula = element.formula.replace(/[^0-9d+-]/g, '');
+
+        // Make sure the type doesn't contain any dice notation
+        if (element.type) {
+            element.type = element.type.replace(/\d+d\d+[+-]?\d*/g, '').trim();
+        }
+    });
+
+    return elements;
+}
+
 // Listen for clicks on damage elements
 document.addEventListener('click', function(e) {
     // Check if we clicked on or inside the damage tooltip (with damage dice icon)
@@ -193,35 +338,64 @@ document.addEventListener('click', function(e) {
             return;
         }
 
-        // Find the text node containing the dice formula (it's right after the weapon-span)
-        let diceNode = null;
-        for (const node of damageSpan.childNodes) {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-                diceNode = node;
-                break;
+        // Get the full damage text content
+        const fullDamageText = damageSpan.innerHTML;
+        if (!fullDamageText) {
+            console.warn("Damage text is empty.");
+            return;
+        }
+
+        // For debugging
+        console.log("Full damage HTML:", fullDamageText);
+
+        // Parse the damage elements
+        const damageElements = parseDamageElements(fullDamageText);
+        console.log("Parsed damage elements:", damageElements);
+
+        if (damageElements.length === 0) {
+            console.warn("No valid damage elements found.");
+
+            // Fallback to the old method if parsing fails
+            const textContent = damageSpan.textContent.trim();
+            const simpleMatch = textContent.match(/(\d+d\d+(?:[+-]\d+)?)/);
+            if (simpleMatch) {
+                damageElements.push({
+                    formula: simpleMatch[1],
+                    type: ''
+                });
+            } else {
+                return;
             }
         }
 
-        if (!diceNode) {
-            console.warn("Dice formula text node not found.");
-            return;
-        }
-
-        // Extract just the dice formula, removing any whitespace
-        const damageText = diceNode.textContent.trim();
-        if (!damageText) {
-            console.warn("Dice formula is empty.");
-            return;
-        }
-
-        // Get critical multiplier if it exists
+        // Get critical information if it exists
         const critSpan = damageSpan.querySelector('.tooltiptextCrit');
-        const critMatch = critSpan ? critSpan.textContent.match(/Critical\s*(\d+x):/) : null;
-        const critText = critMatch ? critMatch[1] : null;
+        let critText = '';
+        let critDamage = [];
 
-        // Get damage type if it exists
-        const damageTypeSpan = damageSpan.querySelector('.superscript-damage');
-        const damageType = damageTypeSpan ? damageTypeSpan.textContent.trim() : null;
+        if (critSpan) {
+            // Extract all crit-text elements
+            const critTextElements = critSpan.querySelectorAll('.crit-text');
+            if (critTextElements && critTextElements.length > 0) {
+                critTextElements.forEach(element => {
+                    const text = element.textContent.trim();
+                    if (text) {
+                        critDamage.push(text);
+                    }
+                });
+            }
+
+            // If we found crit damage, format it nicely
+            if (critDamage.length > 0) {
+                critText = critDamage.join(' + ');
+            } else {
+                // Fallback to the old method if we couldn't find crit-text elements
+                const critMatch = critSpan.textContent.match(/Critical\s*(\d+x):/);
+                if (critMatch) {
+                    critText = critMatch[1];
+                }
+            }
+        }
 
         // Get the weapon name from the parent container
         const weaponNameElement = damageElement.parentElement.querySelector('.weapon-name');
@@ -231,11 +405,32 @@ document.addEventListener('click', function(e) {
         const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
         const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
 
-        // Create the roll template string for damage, including critical multiplier and damage type if available
-        const rollString = `&{template:default} {{name=${charName} - ${weaponName} Damage}} {{damage=[[${damageText}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${critText ? ` {{critical=${critText}}}` : ''}`;
+        // Process each damage element
+        for (let i = 0; i < damageElements.length; i++) {
+            const { formula, type } = damageElements[i];
 
-        // Handle roll string copying and sending
-        handleRollString(rollString, 'Damage roll', e.clientX, e.clientY);
+            // Skip if formula is completely invalid (empty or contains non-dice characters)
+            // But allow valid dice notation (numbers, d, +, -)
+            if (!formula || !/^\d+d\d+([+-]\d+)?$/.test(formula)) {
+                console.warn(`Skipping invalid formula: ${formula}`);
+                continue;
+            }
+
+            // Create a descriptive label for additional damage elements
+            const damageLabel = i === 0 ? 'Damage' : `Additional Damage`;
+
+            // Create the roll template string for this damage element
+            // Only include critical information in the first damage roll
+            const rollString = `&{template:default} {{name=${charName} - ${weaponName} ${damageLabel}}} {{damage=[[${formula}]]}}${type ? ` {{type=${type}}}` : ''}${critText && i === 0 ? ` {{critical=${critText}}}` : ''}`;
+
+            console.log(`Sending roll: ${rollString}`);
+
+            // Handle roll string copying and sending
+            // Add a small delay for additional damage elements to ensure they appear in order
+            setTimeout(() => {
+                handleRollString(rollString, `${damageLabel} roll`, e.clientX, e.clientY);
+            }, i * 100);
+        }
     });
 });
 
