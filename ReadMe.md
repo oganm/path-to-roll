@@ -12,6 +12,10 @@ A Chrome extension that enhances the interaction between Pathbuilder 2e characte
   - Roll formula with modifier
   - Additional context (proficiency level, traits, damage types, etc.)
 - **Automatic Roll20 Integration**: When a single Roll20 game tab is open and ready, rolls will be automatically pasted into the chat
+- **Enhanced Critical Hit Formatting**: Critical hit information is now displayed in a more readable format:
+  - Shows critical multiplier (e.g., "2x")
+  - Displays additional critical damage with clickable roll links
+  - Format: "2x + [additional damage] ([Roll Additional Critical])"
 
 ### Status Indicators
 - **Pathbuilder Status**: Shows whether a Pathbuilder character sheet is open
@@ -141,3 +145,14 @@ Feel free to submit issues and enhancement requests!
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Changelog
+
+### Version 1.0.2
+- Improved critical hit formatting
+- Added clickable links for rolling additional critical damage
+- Removed parenthetical damage type annotations from critical rolls
+- Critical hits now display in format: "2x + [additional damage] ([Roll Additional Critical])"
+
+### Version 1.0.1
+- Initial public release
