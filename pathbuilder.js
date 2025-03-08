@@ -374,26 +374,73 @@ document.addEventListener('click', function(e) {
         let critDamage = [];
 
         if (critSpan) {
-            // Extract all crit-text elements
-            const critTextElements = critSpan.querySelectorAll('.crit-text');
-            if (critTextElements && critTextElements.length > 0) {
-                critTextElements.forEach(element => {
-                    const text = element.textContent.trim();
-                    if (text) {
-                        critDamage.push(text);
-                    }
-                });
+            // Initialize variables for different crit sections
+            let critMultiplier = '';
+            let additionalCritDamage = [];
+
+            // First, try to find the multiplier (2x)
+            const critMultiplierText = critSpan.querySelector('.subtitle-map');
+            if (critMultiplierText && critMultiplierText.nextSibling) {
+                const multiplierText = critMultiplierText.nextSibling.textContent.trim();
+                if (multiplierText.includes('x')) {
+                    // Remove the ":" from the multiplier text if present
+                    critMultiplier = multiplierText.replace(':', '');
+                }
             }
 
-            // If we found crit damage, format it nicely
-            if (critDamage.length > 0) {
-                critText = critDamage.join(' + ');
-            } else {
-                // Fallback to the old method if we couldn't find crit-text elements
-                const critMatch = critSpan.textContent.match(/Critical\s*(\d+x):/);
-                if (critMatch) {
-                    critText = critMatch[1];
+            // Get the HTML content of the critSpan to find the "Plus" section
+            const critHtml = critSpan.innerHTML;
+            const plusIndex = critHtml.indexOf('Plus');
+
+            if (plusIndex !== -1) {
+                // Get all crit-text elements
+                const critTextElements = critSpan.querySelectorAll('.crit-text');
+
+                // Find the index of the crit-text element that comes after "Plus"
+                let plusSectionStartIndex = -1;
+
+                for (let i = 0; i < critTextElements.length; i++) {
+                    const elementHtml = critTextElements[i].outerHTML;
+                    const elementIndex = critHtml.indexOf(elementHtml);
+
+                    if (elementIndex > plusIndex) {
+                        plusSectionStartIndex = i;
+                        break;
+                    }
                 }
+
+                // Process all crit-text elements after the "Plus" section
+                if (plusSectionStartIndex !== -1) {
+                    for (let i = plusSectionStartIndex; i < critTextElements.length; i++) {
+                        const text = critTextElements[i].textContent.trim();
+                        if (text) {
+                            // Extract dice formulas from the text
+                            const parts = text.split('+').map(part => part.trim());
+                            parts.forEach(part => {
+                                const formulaMatch = part.match(/(\d+d\d+(?:[+-]\d+)?)/);
+                                if (formulaMatch) {
+                                    additionalCritDamage.push(formulaMatch[1]);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Format the crit text
+            if (critMultiplier) {
+                critText = critMultiplier;
+
+                // Add clickable link for additional crit damage if it exists
+                if (additionalCritDamage.length > 0) {
+                    const additionalFormula = additionalCritDamage.join(' + ');
+                    // Show the formula followed by the clickable link in parentheses
+                    critText += ` + ${additionalFormula} ([Roll Additional Critical](\`/r ${additionalFormula}))`;
+                }
+            } else if (additionalCritDamage.length > 0) {
+                // If no multiplier but we have additional damage
+                const additionalFormula = additionalCritDamage.join(' + ');
+                critText = `${additionalFormula} ([Roll Critical](\`/r ${additionalFormula}))`;
             }
         }
 
