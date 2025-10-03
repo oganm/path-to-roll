@@ -75,8 +75,9 @@ document.addEventListener('click', function(e) {
         }
 
         // Get the character name from the specific path
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
         console.log('Found character name:', charName);
         const skillName = skillNameElement.textContent.trim();
 
@@ -156,8 +157,9 @@ document.addEventListener('click', function(e) {
         const traitsText = traits.length > 0 ? traits.join(', ') : '';
 
         // Get the character name
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
 
         // Create the roll template string for attack
         const rollString = `&{template:default} {{name=${charName} - ${weaponName} Attack}} {{attack=[[1d20${attackBonus}]]}}${profLevel ? ` {{proficiency=${profLevel}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
@@ -449,8 +451,9 @@ document.addEventListener('click', function(e) {
         const weaponName = weaponNameElement ? weaponNameElement.textContent.trim() : 'Attack';
 
         // Get the character name
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
 
         // Process each damage element
         for (let i = 0; i < damageElements.length; i++) {
@@ -518,8 +521,9 @@ document.addEventListener('click', function(e) {
         const traitsText = traits.length > 0 ? traits.join(', ') : '';
 
         // Get the character name
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
 
         // Create the roll template string for spell attack
         const rollString = `&{template:default} {{name=${charName} - ${spellName} Attack}} {{attack=[[${rollValue}]]}}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
@@ -580,8 +584,9 @@ document.addEventListener('click', function(e) {
         }
 
         // Get the character name
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
 
         // Create the roll template string for spell damage
         const rollString = `&{template:default} {{name=${charName} - ${spellName} Damage}} {{damage=[[${rollValue}]]}}${damageType ? ` {{type=${damageType}}}` : ''}${traitsText ? ` {{traits=${traitsText}}}` : ''}`;
@@ -619,8 +624,9 @@ document.addEventListener('click', function(e) {
         let modifier = abilityMod.textContent.trim();
 
         // Get the character name
-        const charNameElement = document.querySelector("#container-row-0-col-0 > div.section-top.rounded-rectangle > div > div:nth-child(1) > div:nth-child(4) > div > div.button-selection.button-text");
-        const charName = charNameElement ? charNameElement.textContent.trim() : 'Unknown Character';
+        const charButton = document.getElementsByClassName("button-name")[0]
+		const charButtonSelection = charButton ? charButton.getElementsByClassName("button-selection")[0]: null;
+        const charName = charButtonSelection ? charButtonSelection.textContent.trim() : 'Unknown Character';
 
         // Create the roll template string for ability check
         const rollString = `&{template:default} {{name=${charName} - ${ability} Check}} {{roll=[[1d20${modifier}]]}} {{modifier=${modifier}}}`;
