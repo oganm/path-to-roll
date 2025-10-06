@@ -148,6 +148,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+### Version 1.0.3
+- Fixed char name display - curtesy of @oganm (https://github.com/oganm)
+
 ### Version 1.0.2
 - Improved critical hit formatting
 - Added clickable links for rolling additional critical damage
